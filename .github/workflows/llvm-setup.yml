@@ -2,32 +2,43 @@ name: LLVM Project Build
 
 on:
   workflow_call:
+    inputs:
+      llvm_version:
+        description: "LLVM full version to build (e.g., 18.1.8)"
+        required: true
+        type: string
 
 jobs:
   lit-tests:
-    name: LLVM Build
+    name: LLVM Build (v${{ inputs.llvm_version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+
+    env:
+      LLVM_PREFIX: /home/runner/llvm-${{ inputs.llvm_version }}
+
     steps:
+
       - name: LLVM cache check
         uses: actions/cache@v4
         id: llvm-cache
         with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: "/home/runner/llvm"
-          # An explicit key for restoring and saving the cache
-          key: "llvm"
-          restore-keys: "llvm"
+          path: "${{ env.LLVM_PREFIX }}"
+          key: "llvm-${{ runner.os }}-${{ inputs.llvm_version }}"
+          restore-keys: |
+            llvm-${{ runner.os }}-${{ inputs.llvm_version }}
           
       - name: Setup Python
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install Ninja
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         uses: llvm/actions/install-ninja@main
+
       # actions/checkout deletes any existing files in the new git directory,
       # so this needs to either run before ccache-action or it has to use
       # clean: false.
@@ -35,6 +46,7 @@ jobs:
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         with:
           fetch-depth: 250
+
       - name: Setup ccache
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         uses: hendrikmuhs/ccache-action@v1.2
@@ -47,14 +59,14 @@ jobs:
           # enough cache space for all the tests to run at once and still
           # fit under the 10 GB limit.
           max-size: 500M
-          key: sccache-ubuntu-latest
+          key: ccache-${{ runner.os }}-llvm-${{ inputs.llvm_version }}
           variant: sccache
           
       - name: Fetch LLVM
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         uses: llvm/actions/get-llvm-project-src/@main
         with:
-          ref: 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff
+          ref: ${{ inputs.llvm_version }}
           repo: llvm/llvm-project
 
       - name: Build and Test
@@ -65,13 +77,12 @@ jobs:
           # This should be a no-op for non-mac OSes
           PKG_CONFIG_PATH: /usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig//12
         with:
-          cmake_args: '-GNinja -DCMAKE_INSTALL_PREFIX="$HOME/llvm" -DLLVM_ENABLE_PROJECTS="clang;openmp" -DCMAKE_BUILD_TYPE=Release -DLLDB_INCLUDE_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache'
+          cmake_args: '-GNinja -DCMAKE_INSTALL_PREFIX=${{ env.LLVM_PREFIX }} -DLLVM_ENABLE_PROJECTS="clang;openmp" -DCMAKE_BUILD_TYPE=Release -DLLDB_INCLUDE_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache'
           build_target: 'install'
 
       - name: Cache
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
-          path: "/home/runner/llvm"
-          key: "llvm"
-
+          path: "${{ env.LLVM_PREFIX }}"
+          key: "llvm-${{ runner.os }}-${{ inputs.llvm_version }}"
