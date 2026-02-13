@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
   if (Verbose) {
     std::cerr << "Successfully read Module:" << std::endl;
     std::cerr << " Name: " << m.get()->getName().str() << std::endl;
-    std::cerr << " Target triple: " << m->getTargetTriple() << std::endl;
+    std::cerr << " Target triple: " << m->getTargetTriple().getTriple() << std::endl;
   }
 
   int eval = 0;
