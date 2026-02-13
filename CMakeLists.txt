@@ -31,7 +31,12 @@ message("LLVM found at path: ${LLVM_DIR}")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_CXX_CLANG_TIDY "clang-tidy-10;")
-add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-covered-switch-default)
+
+set(TAFFO_FLAGS -Wall -Wextra -Wno-unused-parameter -Wno-covered-switch-default)
+if(TAFFO_WERROR)
+  list(APPEND TAFFO_FLAGS -Werror)
+endif()
+add_compile_options(${TAFFO_FLAGS})
 
 # build & install all tools by default
 set(LLVM_BUILD_TOOLS ON)
