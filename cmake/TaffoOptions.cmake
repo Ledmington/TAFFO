@@ -5,3 +5,4 @@ option(TAFFO_BUILD_ILP_DTA "Enables linear-programming-based data type optimizat
 option(TAFFO_BUILD_ORTOOLS "Build ORTools" OFF)
 option(TAFFO_UNITTESTS "Enables tools for unit tests" OFF)
 option(TAFFO_SUBMOD_UPDATE "Performs a submodule update during configuration" OFF)
+option(TAFFO_WERROR "Treats all warnings as errors" OFF)
