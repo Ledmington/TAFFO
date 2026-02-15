@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     std::cerr << " Target triple: "
               << m->getTargetTriple()
 #if LLVM_VERSION_MAJOR >= 21
-                   .getTriple()
+                   .str()
 #endif
               << std::endl;
   }
