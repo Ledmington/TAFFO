@@ -59,6 +59,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}
           cmake -S ${GITHUB_WORKSPACE} -B ${GITHUB_WORKSPACE}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DTAFFO_UNITTESTS=ON \
             -DLLVM_DIR=${LLVM_INSTALL_DIR}
 
       - name: Build
